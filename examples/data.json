@@ -1,0 +1,29 @@
+{
+	"machine": {
+		"bigguy": {
+			"name": "bigguy",
+			"cpu": {
+			},
+			"service": [
+				"ref:/service/dns"
+			],
+			"ram": 549755813888
+		},
+		"bigpi": {
+			"ram": 4294967296
+		}
+	},
+	"service": {
+		"dns": {
+			"name": "dns",
+			"application": [
+				"dnsmasq"
+			]
+		}
+	},
+	"application": {
+		"dnsmasq": {
+			"name": "dnsmasq"
+		}
+	}
+}
