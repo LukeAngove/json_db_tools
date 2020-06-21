@@ -40,15 +40,42 @@ class ToJSON:
             "ref", # Reference to another part of the tree
     )
 
+    builtin_types = (
+            "str",
+            "int",
+            "dict",
+            "set",
+    )
+
+    all_types = tuple(list(custom_types) + list(builtin_types))
+
     def __init__(self, reader, init_path=Path("")):
         self.reader = reader
         self.init_path = init_path
+        if init_path != Path("") and "#" not in str(init_path):
+            self.init_path = self._typeless_to_typed_path(self.init_path)
+
+
+    def _typed_to_typeless_path(self, typed_path):
+        parts = "/".join(p.rsplit("#", 1)[0] for p in typed_path.parts)
+        return Path(parts)
+
+    def _typeless_to_typed_path(self, typeless_path):
+        typed_path = ""
+        for p in typeless_path.parts:
+            current_items = self.reader.read_tree(typed_path)
+            for c in current_items:
+                if c.name.startswith(p) and c.name[len(p)] == "#":
+                    typed_path = c
+                    continue
+        return typed_path
+
 
     def convert(self):
-        if str(self.init_path) == ".":
+        if str(self.init_path) == ".": # Assume the root is always a dict.
             data = self.to_dict("")
         else:
-            data = self.to_dict(self.init_path)
+            _, data = self.to_json(self.init_path) # Ignore the name at top level
         return data
 
     def to_json(self, path):
