@@ -4,6 +4,12 @@ import flask
 
 app = flask.Flask(__name__)
 
+def is_valid_path(value):
+    import re
+    print(value)
+    search = re.compile(r'[^a-zA-Z0-9_#/.-]').search
+    return not bool(search(value))
+
 @app.route('/', methods=['GET'])
 def get_branch():
     from db_to_json import ToJSON, FromGit
@@ -12,11 +18,23 @@ def get_branch():
 
     if 'branch' in request.args:
         branch = request.args['branch']
+        if not is_valid_path(branch):
+            return "Error: branch name is invalid."
     else:
         return "Error: No id field provided. Please specify an id."
 
+    if 'subtree' in request.args:
+        subtree = request.args['subtree']
+    else:
+        subtree = ""
+
+    if is_valid_path(subtree):
+        subtree = Path(subtree)
+    else:
+        return "Error: subtree path is invalid."
+
     path = Path.cwd() / "examples/git"
-    reader = ToJSON(FromGit(path, branch))
+    reader = ToJSON(FromGit(path, branch), init_path=subtree)
     data = reader.convert()
 
     return jsonify(data)

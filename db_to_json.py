@@ -108,7 +108,6 @@ def main():
         raise Error("No backend specified.")
 
     init_path = Path(args.init_path)
-    print("Path: {}".format(init_path))
     converter = ToJSON(maker, init_path=init_path)
 
     data = converter.convert()
