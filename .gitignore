@@ -1,3 +1,4 @@
 examples/fs/**
 examples/git/**
 
+__pycache__/db_to_json.cpython-38.pyc
