@@ -40,11 +40,15 @@ class ToJSON:
             "ref", # Reference to another part of the tree
     )
 
-    def __init__(self, reader):
+    def __init__(self, reader, init_path=Path("")):
         self.reader = reader
+        self.init_path = init_path
 
     def convert(self):
-        data = self.to_dict("")
+        if str(self.init_path) == ".":
+            data = self.to_dict("")
+        else:
+            data = self.to_dict(self.init_path)
         return data
 
     def to_json(self, path):
@@ -87,23 +91,28 @@ def main():
     ap.add_argument("--fs", type=str, default=None, help="Store JSON in file system format at the given path.")
     ap.add_argument("--git", type=str, default=None, help="Store JSON in git format at the given path.")
     ap.add_argument("--branch", type=str, default=None, help="Branch used for git.")
+    ap.add_argument("--init-path", type=str, default="", help="Path to start conversion at. Used for querying subtrees.")
 
     args = ap.parse_args()
 
     if args.fs:
         path = Path(args.fs)
         path.mkdir(exist_ok=True)
-        db_to_json = ToJSON(FromFileSystem(path))
+        maker = FromFileSystem(path)
     elif args.git:
         if not args.branch:
             raise(Error("When using git backend, you must supply a branch name"))
         path = Path(args.git)
-        db_to_json = ToJSON(FromGit(path, args.branch))
+        maker = FromGit(path, args.branch)
     else:
         raise Error("No backend specified.")
 
-    data = db_to_json.convert()
+    init_path = Path(args.init_path)
+    converter = ToJSON(maker, init_path=init_path)
+
+    data = converter.convert()
     print(dumps(data, indent=2, sort_keys=True))
 
 if __name__ == "__main__":
     main()
+
